@@ -11,15 +11,51 @@ import os
 
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from flasgger import Swagger, swag_from
 
 from data_metrics_model import WeatherStats
 from data_models import WeatherData
 
 app = Flask(__name__)
+swagger = Swagger(app)
 
 
 @app.route("/api/weather", methods=["GET"])
+@swag_from({
+    'parameters': [
+        {
+            'name': 'page',
+            'in': 'query',
+            'type': 'int',
+            'required': False,
+            'description': 'Page of paginated oyutput to view.'
+        },
+        {
+            'name': 'start_date',
+            'in': 'query',
+            'type': 'string',
+            'required': False,
+            'description': 'Start date filter of response.'
+        },
+        {
+            'name': 'end_date',
+            'in': 'query',
+            'type': 'string',
+            'required': False,
+            'description': 'End date filter of response.'
+        }
+    ]
+})
 def get_weather_data():
+    """
+    Endpoint returning paginated weather data based.
+    Filtering is based on start date and end date.
+    ---
+    responses:
+        200:
+            description: A list of weather data object containing
+                date, min temperature, max temperature and precipitation.
+    """
     # Since I am not sure of station name as I couldn't find it in data, so not using it for api.
     page = request.args.get("page", 1, type=int)
     start_date = request.args.get("start_date", type=str)
@@ -50,7 +86,35 @@ def get_weather_data():
 
 
 @app.route("/api/weather/stats", methods=["GET"])
+@swag_from({
+    'parameters': [
+        {
+            'name': 'page',
+            'in': 'query',
+            'type': 'int',
+            'required': False,
+            'description': 'Page of paginated oyutput to view.'
+        },
+        {
+            'name': 'year',
+            'in': 'query',
+            'type': 'string',
+            'required': False,
+            'description': 'Year filter for response.'
+        }
+    ]
+})
 def get_weather_stats_data():
+    """
+    Endpoint returning paginated weather stats data.
+    Filtering is based on year.
+    ---
+    responses:
+        200:
+            description: A list of weather stats data object containing
+                year, average min temperature, average max temperature and 
+                total precipitation.
+    """
     # Since I am not sure of station name as I couldn't find it in data, so not using it for api.
     page = request.args.get("page", 1, type=int)
     year = request.args.get("year", type=int)
